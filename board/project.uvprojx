@@ -630,7 +630,7 @@
             <File>
               <FileName>ef_fal_port.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\packages\EasyFlash-v3.3.0\ports\ef_fal_port.c</FilePath>
+              <FilePath>.\ports\easyflash\ef_fal_port.c</FilePath>
             </File>
           </Files>
         </Group>

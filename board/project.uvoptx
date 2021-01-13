@@ -727,7 +727,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\packages\EasyFlash-v3.3.0\ports\ef_fal_port.c</PathWithFileName>
+      <PathWithFileName>.\ports\easyflash\ef_fal_port.c</PathWithFileName>
       <FilenameWithoutPath>ef_fal_port.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
