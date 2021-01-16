@@ -343,9 +343,17 @@ static void iotb_lcd_show(void *arg) /* dynamic thread */
 
 void iotb_lcd_show_startup_page(void)
 {
-    /* show RT-Thread logo */
+    /* show startup logo */
     lcd_show_image(0, 0, 240, 240, image_logo);
 }
+
+
+void iotb_lcd_show_main_page(void)
+{
+    /* show startup logo */
+    lcd_show_image(0, 0, 240, 240, image_logo_main);
+}
+
 
 static void iotb_lcd_show_index_page(iotb_lcd_menu_t *lcd_menu)
 {

@@ -65,15 +65,13 @@ static uint8_t iotb_aht10_busy = 0;
 */
 rt_err_t iotb_sensor_aht10_init(void)
 {
-    if (iotb_aht10_inited)
-    {
+    if (iotb_aht10_inited) {
         return RT_EOK;
     }
 
     const char *aht10_dev_name = "i2c1soft";
 
-    if (iotb_aht10_dev != RT_NULL)
-    {
+    if (iotb_aht10_dev != RT_NULL) {
         iotb_sensor_aht10_deinit();
     }
 
@@ -81,8 +79,7 @@ rt_err_t iotb_sensor_aht10_init(void)
 
     /* initializes aht10, registered device driver */
     iotb_aht10_dev = aht10_init((const char *)aht10_dev_name);
-    if (iotb_aht10_dev == RT_NULL)
-    {
+    if (iotb_aht10_dev == RT_NULL) {
         LOG_E("The sensor initializes failure");
         return -RT_ERROR;
     }
@@ -116,13 +113,11 @@ rt_err_t iotb_sensor_aht10_deinit(void)
 */
 rt_err_t iotb_sensor_aht10_read(uint8_t ops, float *data)
 {
-    if (!iotb_aht10_dev || !data || !iotb_aht10_inited)
-    {
+    if (!iotb_aht10_dev || !data || !iotb_aht10_inited) {
         return -RT_ERROR;
     }
 
-    if (iotb_aht10_busy == 1)
-    {
+    if (iotb_aht10_busy == 1) {
         return -RT_EBUSY;
     }
 
@@ -131,12 +126,10 @@ rt_err_t iotb_sensor_aht10_read(uint8_t ops, float *data)
     *data = ops ? aht10_read_humidity(iotb_aht10_dev) : aht10_read_temperature(iotb_aht10_dev);
 
     iotb_aht10_busy = 0;
-    if ((ops == 0) && (*data == -50))
-    {
+    if ((ops == 0) && (*data == -50)) {
         return -RT_ERROR;
     }
-    else if ((ops == 1) && (*data == 0.0f))
-    {
+    else if ((ops == 1) && (*data == 0.0f)) {
         return -RT_ERROR;
     }
 

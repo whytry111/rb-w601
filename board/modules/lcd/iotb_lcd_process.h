@@ -73,6 +73,7 @@ typedef struct
 
 void iotb_lcd_start(void);
 void iotb_lcd_show_startup_page(void);
+void iotb_lcd_show_main_page(void);
 void iotb_lcd_event_put(iotb_lcd_event_t event);
 rt_err_t iotb_lcd_event_get(uint32_t set, uint32_t *event, uint8_t clr, uint32_t timeout);
 void iotb_lcd_update_menu_index(uint8_t menu_index);

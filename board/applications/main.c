@@ -9,6 +9,7 @@
  */
 
 #include <rtthread.h>
+//#include <stdio.h>
 #include "iotb_sensor.h"
 #include "iotb_event.h"
 #include "iotb_workqeue.h"
@@ -26,9 +27,39 @@
 #if 1
 int main(void)
 {
+	float tem_val, hum_val;
+	char tem_ch[64];
+	char hum_ch[64];
+
     iotb_lcd_show_startup_page();
+	rt_thread_mdelay(1000);
 
 	/* 初始化温湿度传感器 */
+	iotb_sensor_aht10_init();
+    rt_thread_mdelay(100);
+	iotb_lcd_show_main_page();
+
+	while(1) {
+		iotb_sensor_aht10_read(0, &tem_val);
+		iotb_sensor_aht10_read(1, &hum_val);
+
+		sprintf(tem_ch, "temperature:%.2f", tem_val);
+		sprintf(hum_ch, "humidity:%.2f", hum_val);
+
+		lcd_show_string(25, 80, 24, tem_ch);
+		lcd_show_string(25, 110, 24, hum_ch);
+
+#if 0	/* test */	
+		printf("temperature: %f, %s\n", tem_val, tem_ch);
+		printf("humidity: %f, %s\n", hum_val, hum_ch);
+#endif 
+		
+		rt_thread_mdelay(500);
+	}
+
+	
+
+	
 
 	/* 显示温湿度值，每500ms更新一次显示 */
 
