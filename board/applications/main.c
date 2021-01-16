@@ -23,6 +23,20 @@
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
+#if 1
+int main(void)
+{
+    iotb_lcd_show_startup_page();
+
+	/* 初始化温湿度传感器 */
+
+	/* 显示温湿度值，每500ms更新一次显示 */
+
+	
+
+}
+
+#else	/* demo */
 int main(void)
 {
     /* 显示启动页 */
@@ -72,3 +86,7 @@ int main(void)
     LOG_E("Init key process start ok!");
     return 0;
 }
+#endif
+
+
+

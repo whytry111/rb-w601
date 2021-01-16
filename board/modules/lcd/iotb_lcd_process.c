@@ -339,11 +339,12 @@ static void iotb_lcd_show(void *arg) /* dynamic thread */
 #include <board.h>
 #include <iotb_version.h>
 
+
+
 void iotb_lcd_show_startup_page(void)
 {
     /* show RT-Thread logo */
-    lcd_show_image(0, 43, 240, 69, image_rttlogo);
-    lcd_show_image(0, 123, 240, 74, gImage_yuanzilogo240x74);
+    lcd_show_image(0, 0, 240, 240, image_logo);
 }
 
 static void iotb_lcd_show_index_page(iotb_lcd_menu_t *lcd_menu)
