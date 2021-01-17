@@ -27,44 +27,24 @@
 #if 1
 int main(void)
 {
-	float tem_val, hum_val;
-	char tem_ch[64];
-	char hum_ch[64];
-
+	/* 显示启动页 */
     iotb_lcd_show_startup_page();
 	rt_thread_mdelay(1000);
 
-	/* 初始化温湿度传感器 */
-	iotb_sensor_aht10_init();
-    rt_thread_mdelay(100);
-	iotb_lcd_show_main_page();
+	 /* 初始化 WIFI */
+    if (iotb_sensor_wifi_init() != RT_EOK) {
+		printf("WIFI Init failed!\n");
+		return 0;
+    }
 
-	while(1) {
-		iotb_sensor_aht10_read(0, &tem_val);
-		iotb_sensor_aht10_read(1, &hum_val);
-
-		sprintf(tem_ch, "temperature:%.2f", tem_val);
-		sprintf(hum_ch, "humidity:%.2f", hum_val);
-
-		lcd_show_string(25, 80, 24, tem_ch);
-		lcd_show_string(25, 110, 24, hum_ch);
-
-#if 0	/* test */	
-		printf("temperature: %f, %s\n", tem_val, tem_ch);
-		printf("humidity: %f, %s\n", hum_val, hum_ch);
-#endif 
-		
-		rt_thread_mdelay(500);
+	/* 启动工作队列，异步处理耗时任务 */
+	printf("iotb_workqueue_start!");
+	if (iotb_workqueue_start() != RT_EOK) {
+	   return -RT_ERROR;
 	}
 
-	
-
-	
-
-	/* 显示温湿度值，每500ms更新一次显示 */
-
-	
-
+	/* 工作队列中加入系统初始化函数 */
+	iotb_workqueue_dowork(iotb_init, RT_NULL);
 }
 
 #else	/* demo */

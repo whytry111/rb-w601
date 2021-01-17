@@ -82,10 +82,6 @@ typedef struct
     uint16_t ap3216_data_ps;
     rt_err_t ap3216_ps_status;
 
-
-    rt_uint8_t infrared_receive;
-    rt_uint8_t infrared_send;
-
     uint16_t status; /* 0: read finish; 1: not finish */
 
     uint8_t reserved;

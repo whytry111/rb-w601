@@ -358,8 +358,6 @@ static iotb_sensor_data_t iotb_sensor_data_result =
     .ap3216_data_als = 0.0f,
     .ap3216_data_ps  = 0,
 
-    .infrared_receive = 0,
-
     .aht10_temp_status = -RT_ERROR,
     .aht10_humi_status = -RT_ERROR,
     .ap3216_als_status = -RT_ERROR,
@@ -381,10 +379,6 @@ void iotb_sensor_data_upload(iotb_sensor_data_t *in_data, iotb_sensor_data_t *ou
     out_data->ap3216_ps_status = in_data->ap3216_ps_status;
     out_data->ap3216_data_ps = in_data->ap3216_data_ps;
 
-
-    out_data->infrared_send = in_data->infrared_send;
-    out_data->infrared_receive = in_data->infrared_receive;
-
     rt_hw_interrupt_enable(level);
 }
 
@@ -394,56 +388,39 @@ void iotb_sensor_data_read(void *arg)
 
     iotb_sensor_data_upload(iotb_sensor_data_result_get(), &sensor_data);
 
-    if (iotb_lcd_get_menu_index() == 2)
-    {
-        if (iotb_aht10_inited == 0)
-        {
-            LOG_E("aht10 init failed! Retry...");
-            rt_thread_mdelay(2000);
-            if (iotb_aht10_busy == 0)
-            {
-                iotb_sensor_aht10_init();
-            }
-        }
-        else
-        {
-            rt_thread_mdelay(1);
-            sensor_data.aht10_temp_status =
-                iotb_sensor_aht10_read(0, &sensor_data.aht10_data_temp);
-
-            sensor_data.aht10_humi_status =
-                iotb_sensor_aht10_read(1, &sensor_data.aht10_data_humi);
-        }
-
-        if (iotb_ap3216c_inited == 0)
-        {
-            LOG_E("ap3216 init failed! Retry...");
-            rt_thread_mdelay(2000);
-            if (iotb_ap3216c_inited == 0 && iotb_ap3216c_busy == 0)
-            {
-                iotb_sensor_ap3216c_init();
-            }
-        }
-        else
-        {
-            sensor_data.ap3216_als_status =
-                iotb_sensor_ap3216c_read_als(&sensor_data.ap3216_data_als);
-
-            sensor_data.ap3216_ps_status =
-                iotb_sensor_ap3216c_read_ps(&sensor_data.ap3216_data_ps);
+	/* 如果温湿度传感器没有初始化成功，则重新初始化 */
+    if (iotb_aht10_inited == 0) {
+        LOG_E("aht10 init failed! Retry...");
+        rt_thread_mdelay(2000);
+        if (iotb_aht10_busy == 0) {
+            iotb_sensor_aht10_init();
         }
     }
-    else if (iotb_lcd_get_menu_index() == 5)
-    {
-        iotb_sensor_infrared_read(&sensor_data.infrared_receive);
-        sensor_data.infrared_send++;
-        iotb_sensor_infrared_send(&sensor_data.infrared_send);
-    }
-    else
-    {
-        return;
+    else {	/* 读取温湿度传感器的值 */
+        rt_thread_mdelay(1);
+        sensor_data.aht10_temp_status =
+            iotb_sensor_aht10_read(0, &sensor_data.aht10_data_temp);
+
+        sensor_data.aht10_humi_status =
+            iotb_sensor_aht10_read(1, &sensor_data.aht10_data_humi);
     }
 
+	/* 如果光感传感器没有初始化成功，则重新初始化 */
+    if (iotb_ap3216c_inited == 0) {
+        LOG_E("ap3216 init failed! Retry...");
+        rt_thread_mdelay(2000);
+        if (iotb_ap3216c_inited == 0 && iotb_ap3216c_busy == 0) {
+            iotb_sensor_ap3216c_init();
+        }
+    }
+    else { /* 读取光感传感器的值 */
+        sensor_data.ap3216_als_status =
+            iotb_sensor_ap3216c_read_als(&sensor_data.ap3216_data_als);
+
+        sensor_data.ap3216_ps_status =
+            iotb_sensor_ap3216c_read_ps(&sensor_data.ap3216_data_ps);
+    }
+		
     iotb_sensor_data_upload(&sensor_data, iotb_sensor_data_result_get());
 }
 
@@ -460,10 +437,47 @@ void iotb_sensor_thr_set_cycle(uint16_t time)
     rt_hw_interrupt_enable(level);
 }
 
+
+
+static void _iotb_sensor_data_pro_thr(void *arg)
+{
+	char tem_ch[64];
+	char hum_ch[64];
+	iotb_sensor_data_t sensor_data;
+	
+
+    do {
+        iotb_sensor_data_upload(iotb_sensor_data_result_get(), &sensor_data);
+
+		sprintf(tem_ch, "temperature:%.2f", sensor_data.aht10_data_temp);
+		sprintf(hum_ch, "humidity:%.2f", sensor_data.aht10_data_humi);
+
+		lcd_show_string(25, 80, 24, tem_ch);
+		lcd_show_string(25, 110, 24, hum_ch);
+        rt_thread_mdelay(iotb_sensor_thr_cycle);
+    }
+    while (1);
+}
+
+
+void iotb_sensor_data_process(void)
+{
+	rt_thread_t sensor_data_pro_thr = RT_NULL;
+
+	/* 创建线程 */
+    sensor_data_pro_thr = rt_thread_create("sensor_data_process",
+                                       _iotb_sensor_data_pro_thr,
+                                       RT_NULL,
+                                       2048, 12, 500);
+	/* 启动线程 */
+	if (sensor_data_pro_thr != RT_NULL) {
+        rt_thread_startup(sensor_data_pro_thr);
+    }
+}
+
 static void _iotb_sensor_read_thr(void *arg)
 {
-    do
-    {
+    do {
         iotb_sensor_data_read(RT_NULL);
         rt_thread_mdelay(iotb_sensor_thr_cycle);
     }
@@ -473,12 +487,14 @@ static void _iotb_sensor_read_thr(void *arg)
 void iotb_sensor_read_start(void)
 {
     rt_thread_t sensor_read_thr = RT_NULL;
+
+	/* 创建线程 */
     sensor_read_thr = rt_thread_create("sensor",
                                        _iotb_sensor_read_thr,
                                        RT_NULL,
                                        2048, 12, 10);
-    if (sensor_read_thr != RT_NULL)
-    {
+	/* 启动线程 */
+	if (sensor_read_thr != RT_NULL) {
         rt_thread_startup(sensor_read_thr);
     }
 }
@@ -1016,8 +1032,7 @@ rt_err_t iotb_sensor_wifi_init(void)
     rt_thread_t iotb_wifi_tid;
 #endif
 
-    if (iotb_wifi_inited)
-    {
+    if (iotb_wifi_inited) {
         rst = RT_EOK;
         return rst;
     }
@@ -1029,12 +1044,10 @@ rt_err_t iotb_sensor_wifi_init(void)
 
 
 #endif
-    if (_iotb_sensor_wifi_init(RT_NULL) == RT_EOK)
-    {
+    if (_iotb_sensor_wifi_init(RT_NULL) == RT_EOK) {
         rst = RT_EOK;
     }
-    else
-    {
+    else {
         rst = -RT_ERROR;
     }
 
@@ -1743,30 +1756,31 @@ void iotb_rt_cld_init()
     LOG_I("MCU ID: %s", uid);
     cld_port_set_device_sn((char *)uid);
 
-
-    /* create thread */
+    /* 创建线程 */
     iotb_cld_thr = rt_thread_create("iotb_cld",
                                     iotb_rtcld_init_thr,
                                     RT_NULL,
                                     4096, 12, 10);
-    if (iotb_cld_thr != RT_NULL)
-    {
+
+	/* 启动线程 */
+	if (iotb_cld_thr != RT_NULL) {
         rt_thread_startup(iotb_cld_thr);
     }
 }
 
 void iotb_init(void *arg)
 {
-    /* Sensor data can be read after one second of power-on */
-    app_infrared_init();
-    LOG_E("I0!");
-    rt_thread_mdelay(100);
+    /* 初始化温湿度传感器 */
     iotb_sensor_aht10_init();
     rt_thread_mdelay(100);
-    iotb_sensor_ap3216c_init();
+
+	/* 初始化光感传感器 */
+	iotb_sensor_ap3216c_init();
     rt_thread_mdelay(100);
 
+	iotb_lcd_show_main_page();
     iotb_sensor_read_start();
+	iotb_sensor_data_process();
+	
     iotb_rt_cld_init();
-
 }

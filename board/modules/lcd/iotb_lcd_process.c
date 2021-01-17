@@ -100,7 +100,7 @@ static const iotb_lcd_handle iotb_lcd_handle_array[IOTB_LCD_MENU_MAX + 1] =
     (iotb_lcd_handle)iotb_lcd_show_sensor,
     (iotb_lcd_handle)iotb_lcd_show_beep_motor_rgb,
     (iotb_lcd_handle)iotb_lcd_show_sdcard,
-    (iotb_lcd_handle)iotb_lcd_show_infrared,
+//    (iotb_lcd_handle)iotb_lcd_show_infrared,
 //    (iotb_lcd_handle)iotb_lcd_show_music,
     (iotb_lcd_handle)iotb_lcd_show_wifiscan,
     (iotb_lcd_handle)iotb_lcd_show_wechatscan,
@@ -630,7 +630,7 @@ static void iotb_lcd_show_infrared(iotb_lcd_menu_t *lcd_menu)
     iotb_sensor_data_t sensor_data;
     iotb_sensor_data_upload(iotb_sensor_data_result_get(), &sensor_data);
     rt_memset(buf, 0x0, sizeof(buf));
-    rt_snprintf(buf, sizeof(buf), "0x%02X", sensor_data.infrared_receive);
+    //rt_snprintf(buf, sizeof(buf), "0x%02X", sensor_data.infrared_receive);
 
     if (lcd_menu->content_type == IOTB_LCD_STATIC_CONTENT)
     {
